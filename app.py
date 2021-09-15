@@ -113,9 +113,9 @@ def upload():
         print("5------")
 
         # アップしたファイルをインサートする
-        reading_csv(fs.filename)
-        #insert_sql(fs.filename)
-        print("6------")
+        data=reading_csv(fs.filename)
+        insert_sql(data)
+        print(data)
         
         return render_template("uploaded.html", data = data)
     except:
@@ -124,7 +124,7 @@ def upload():
 
 # CSVファイルを読み込む関数
 def reading_csv(filename):
-    #data = []
+    data = []
     with open(filename, encoding='utf-8') as f:#windowsとmacで文字コードが異なる。OSに依存しない対応を要検討。
         print(f)
         reader = csv.reader(f)
@@ -135,8 +135,23 @@ def reading_csv(filename):
             tuples=(row[0], row[1], row[2])
             print(tuples)
             data.append(tuples,)
-            #print(data)
-        return data
+    print(data)
+    return data
+
+# CSVファイルを書き込む関数
+def insert_sql(data):
+    for temp in data:
+        print(temp)
+        example = Post()
+        #example.id = 1
+        example.title = temp[0]
+        example.detail = temp[1]
+        example.due = datetime.strptime(temp[2], '%Y-%m-%d')
+        print(example)
+
+        db.session.add(example)
+        db.session.commit()
+        #return redirect('/')
 
 
 
