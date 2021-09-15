@@ -4,6 +4,8 @@ from datetime import datetime, date
 from io import StringIO
 import csv
 
+from flask_sqlalchemy.model import Model
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -24,12 +26,14 @@ def index():
         return render_template('index.html', posts=posts, today=date.today())
 
     else:
+        
+        id = request.form.get('id')
         title = request.form.get('title')
         detail = request.form.get('detail')
         due = request.form.get('due')
         
         due = datetime.strptime(due, '%Y-%m-%d')
-        new_post = Post(title=title, detail=detail, due=due)
+        new_post = Post(id=id, title=title, detail=detail, due=due)
 
         db.session.add(new_post)
         db.session.commit()
@@ -53,6 +57,20 @@ def delete(id):
     db.session.commit()
     return redirect('/')
 
+@app.route('/add')
+def add():
+    example = Post()
+    #example.id = 1
+    example.title = 'auto title'
+    example.detail = 'auto detail'
+    example.due = datetime.strptime('2021-09-20', '%Y-%m-%d')
+    print(example)
+
+    db.session.add(example)
+    db.session.commit()
+    return redirect('/')
+
+
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
     post = Post.query.get(id)
@@ -62,6 +80,7 @@ def update(id):
         post.title = request.form.get('title')
         post.detail = request.form.get('detail')
         post.due = datetime.strptime(request.form.get('due'), '%Y-%m-%d')
+        print(post.due)
 
         db.session.commit()
         return redirect('/')
@@ -76,28 +95,31 @@ def home():
 def upload():
     try:
         print(request.files)
-        #print("2------")
+        print("2------")
 
         #fileの取得（FileStorage型で取れる）
         # https://tedboy.github.io/flask/generated/generated/werkzeug.FileStorage.html
         fs = request.files['file']
-        #print("3------")
+        print("3------")
         
         # 下記のような情報がFileStorageからは取れる
         app.logger.info('file_name={}'.format(fs.filename))
         app.logger.info('content_type={} content_length={}, mimetype={}, mimetype_params={}'.format(
             fs.content_type, fs.content_length, fs.mimetype, fs.mimetype_params))
-        #print("4------")
+        print("4------")
 
         # ファイルを保存
         fs.save(fs.filename)
-        #print("5------")
+        print("5------")
 
         # アップしたファイルをインサートする
         reading_csv(fs.filename)
-        #print("6------")
+        #insert_sql(fs.filename)
+        print("6------")
+        
         return render_template("uploaded.html", data = data)
     except:
+        print("except")
         return "ファイルがありません"
 
 # CSVファイルを読み込む関数
@@ -110,11 +132,13 @@ def reading_csv(filename):
 
         header_ = next(csv.reader(f))
         for row in reader:
-            tuples=(row[0], row[1], row[2], row[3], row[4], row[5])
+            tuples=(row[0], row[1], row[2])
             print(tuples)
             data.append(tuples,)
             #print(data)
         return data
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)#debug環境
