@@ -1,10 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date 
+import csv,os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db'
 db = SQLAlchemy(app)
+
+data = []
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,6 +64,20 @@ def update(id):
         db.session.commit()
         return redirect('/')
 
+
+@app.route("/csv")
+def csv():
+    csv_content = read_csv("AirPassengers")
+    for row in csv_content:
+        data.append(row[0])
+        print(data)
+    return render_template("csv.html",input_from_python= data) # templatesフォルダ内のcsv.htmlを表示する
+
+def read_csv(filename):
+    csv_file = open("./csv/" + str(filename) + ".csv", "r", encoding="ms932", errors="", newline="" )
+    f = csv.reader(csv_file, delimiter=",", doublequote=True, lineterminator="\r\n", quotechar='"', skipinitialspace=True)
+    #f = csv.DictReader(csv_file, delimiter=",", doublequote=True, lineterminator="\r\n", quotechar='"', skipinitialspace=True)
+    return f
 
 if __name__ == "__main__":
     # app.run(debug=True)

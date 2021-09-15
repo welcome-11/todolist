@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+    <body>
+        <button onclick=test_click()>ボタン</button>
+        <script>
+            function test_click(){
+                let list_data = {{ input_from_python | tojson }};
+                alert(list_data);
+            };
+        </script>
+    </body>
+</html>
