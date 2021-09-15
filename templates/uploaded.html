@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>ファイルアップロードの実行結果</title>
+    </head>
+    <body>
+        <div id="contents">
+            <h2>ファイルのアップロードに成功！</h2>
+        </div>
+        <table>
+            <tr>
+                <th>No.</th>
+                <th>選手名</th>
+                <th>守備</th>
+                <th>年齢</th>
+                <th>投打</th>
+                <th>年俸（推定）</th>
+            </tr>
+            {% for d in data %}
+            <tr>
+                <td>{{d[0]}}</td>
+                <td>{{d[1]}}</td>
+                <td>{{d[2]}}</td>
+                <td>{{d[3]}}</td>
+                <td>{{d[4]}}</td>
+                <td>{{d[5]}}</td>
+            </tr>
+            {% endfor %}
+        </table>  
+        <ul>
+            <li><a href="/">アップロード画面に戻る</a></li>
+            
+        </ul>
+    </body>
+</html>

@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
+data=[]
 
 
 class Post(db.Model):
@@ -67,42 +67,55 @@ def update(id):
         return redirect('/')
 
 # フォーム表示
-@app.route('/home', methods=['GET'])
+@app.route('/upload', methods=['GET'])
 def home():
-    return render_template("home.html")
+    return render_template("upload.html")
 
 # アップロード機能
 @app.route('/upload', methods=['POST'])
 def upload():
     try:
         print(request.files)
+        #print("2------")
+
         #fileの取得（FileStorage型で取れる）
         # https://tedboy.github.io/flask/generated/generated/werkzeug.FileStorage.html
         fs = request.files['file']
+        #print("3------")
+        
         # 下記のような情報がFileStorageからは取れる
         app.logger.info('file_name={}'.format(fs.filename))
         app.logger.info('content_type={} content_length={}, mimetype={}, mimetype_params={}'.format(
-        fs.content_type, fs.content_length, fs.mimetype, fs.mimetype_params))
+            fs.content_type, fs.content_length, fs.mimetype, fs.mimetype_params))
+        #print("4------")
+
         # ファイルを保存
         fs.save(fs.filename)
+        #print("5------")
+
         # アップしたファイルをインサートする
         reading_csv(fs.filename)
+        #print("6------")
         return render_template("uploaded.html", data = data)
     except:
         return "ファイルがありません"
 
 # CSVファイルを読み込む関数
 def reading_csv(filename):
-    data = []
-    with open(filename, encoding='cp932') as f:
+    #data = []
+    with open(filename, encoding='utf-8') as f:#windowsとmacで文字コードが異なる。OSに依存しない対応を要検討。
+        print(f)
         reader = csv.reader(f)
+        print(reader)
+
         header_ = next(csv.reader(f))
         for row in reader:
             tuples=(row[0], row[1], row[2], row[3], row[4], row[5])
             print(tuples)
             data.append(tuples,)
+            #print(data)
         return data
 
 if __name__ == "__main__":
-    # app.run(debug=True)
-    app.run() # こちらに変更
+    app.run(debug=True)#debug環境
+    #app.run() # 本番環境
