@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date 
 from io import StringIO
-import csv
+import csv,os
+import pandas as pd
 
 from flask_sqlalchemy.model import Model
 
@@ -153,7 +154,25 @@ def insert_sql(data):
         db.session.commit()
         #return redirect('/')
 
+@app.route('/test')
+def csv_display(): 
+    date_fruit_list = pd.read_csv("./input/testdata.csv").values.tolist()
+    print(date_fruit_list)
+    return render_template('date_fruits.html', title='食べた果物記録', date_fruit_list=date_fruit_list)
+    #return render_template('date_fruits.html')
 
+
+@app.route("/export")
+def export_action():
+    # 現在のディレクトリを取得
+    paths = os.path.abspath(__file__)[:-7]
+    print(paths)
+    return send_from_directory(
+        directory=paths + '/input',
+        path='testdata.csv',
+        as_attachment=True,
+        attachment_filename='testdata.csv',
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)#debug環境
