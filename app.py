@@ -8,75 +8,65 @@ import pandas as pd
 from flask_sqlalchemy.model import Model
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///aroma.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 data=[]
 
 
-class Post(db.Model):
-    __tablename__ = 'Todo'
+class OilData(db.Model):
+    __tablename__ = 'oil'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(30), nullable=False)
-    detail = db.Column(db.String(100))
-    due = db.Column(db.DateTime, nullable=False)
+    name = db.Column(db.String(30), nullable=False)#名前
+    category = db.Column(db.String(100), nullable=False)#分類
+    note= db.Column(db.Integer)#topnote
+    smell=db.Column(db.String(100))#香りの種類
+    due = db.Column(db.Integer, nullable=False)#開封日からの使用期限
 
-class ergamechoice(db.Model):
-    __tablename__ = 'ergamechoice'
+class UserData(db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    thema_id = db.Column(db.Integer)
-    res = db.Column(db.String(100))
-    vote_num = db.Column(db.Integer)
+    oil_id = db.Column(db.Integer)
+    volume_ml = db.Column(db.Integer, nullable=False)#所持量
+    open = db.Column(db.DateTime, nullable=False)#開封日
+    due = db.Column(db.DateTime, nullable=False)#使用期限
 
-class ergamethema(db.Model):
-    __tablename__ = 'ergamethema'
+class RecipeData(db.Model):
+    __tablename__ = 'recipe'
     id = db.Column(db.Integer, primary_key=True)
-    thema = db.Column(db.String(200))
+    oil_id0 = db.Column(db.Integer)
+    oil_id1 = db.Column(db.Integer)
+    oil_id2 = db.Column(db.Integer)
+    oil_id3 = db.Column(db.Integer)
+    oil_id0_volume = db.Column(db.Integer)
+    oil_id1_volume  = db.Column(db.Integer)
+    oil_id2_volume  = db.Column(db.Integer)
+    oil_id3_volume  = db.Column(db.Integer)
+    efficacy = db.Column(db.String(100))
 
-class er_room(db.Model):
-    __tablename__ = 'er_room'
-    id = db.Column(db.Integer, primary_key=True)
-    room_name= db.Column(db.String(200))
-    thema_id = db.Column(db.Integer)
-    player_num=db.Column(db.Integer)
-    room_status=db.Column(db.Integer)
-    room_pass=db.Column(db.Integer)
+
 
 ###############メイン画面###############################
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        posts = Post.query.order_by(Post.due).all()
+        posts = UserData.query.order_by(UserData.due).all()
         print(posts)
         return render_template('index.html', posts=posts, today=date.today())
 
     else:
         id = request.form.get('id')
-        if id != None:
-            title = request.form.get('title')
-            detail = request.form.get('detail')
-            due = request.form.get('due')
-            print(id,title,detail,due)
-            due = datetime.strptime(due, '%Y-%m-%d')
-            new_post = Post(id=id, title=title, detail=detail, due=due)
-            db.session.add(new_post)
-            db.session.commit()
-            return redirect('/')
-
-        else:
-            id2 = request.form.get('id2')
-            title2 = request.form.get('title2')
-            detail2 = request.form.get('detail2')
-            due2 = request.form.get('due2')
-            
-            due2 = datetime.strptime(due2, '%Y-%m-%d')
-            print(id2,title2,detail2,due2)
-            
-            new_ergame = ergame(id2=id2, title2=title2, detail2=detail2, due2=due2)
-
-            db.session.add(new_ergame)
-            db.session.commit()
-            return redirect('/')
+        oil_id = request.form.get('oil_id')
+        volume_ml= request.form.get('volume_ml')
+        open = request.form.get('open')
+        due = request.form.get('due')
+        print(id,oil_id,volume_ml,open,due)
+        open = datetime.strptime(due, '%Y-%m-%d')
+        due = datetime.strptime(due, '%Y-%m-%d')
+        new_post = UserData(id=id,oil_id=oil_id,volume_ml=volume_ml,open=open, due=due)
+        db.session.add(new_post)
+        db.session.commit()
+        return redirect('/')
 
 ##############TODOアプリ###############################
 @app.route('/create')
@@ -85,19 +75,19 @@ def create():
 
 @app.route('/detail/<int:id>')
 def read(id):
-    post = Post.query.get(id)
+    post = UserData.query.get(id)
     print(post)
     return render_template('detail.html', post=post)
 
-@app.route('/detail_test/<int:id2>')
-def read_test(id2):
-    ergames = ergame.query.get(id2)
+@app.route('/detail_test/<int:id>')
+def read_test(id):
+    ergames = ergamethema.query.get(id)
     print(ergames)
     return render_template('detail_test.html', ergames=ergames)
 
 @app.route('/delete/<int:id>')
 def delete(id):
-    post = Post.query.get(id)
+    post = UserData.query.get(id)
 
     db.session.delete(post)
     db.session.commit()
@@ -115,7 +105,6 @@ def add():
     db.session.add(example)
     db.session.commit()
     return redirect('/')
-
 
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
@@ -135,6 +124,42 @@ def update(id):
 @app.route('/upload', methods=['GET'])
 def home():
     return render_template("upload.html")
+
+# オイルデータベース管理
+@app.route('/oildatabase', methods=['GET', 'POST'])
+def oildatabase():
+    if request.method == 'GET':
+        posts = OilData.query.all()
+        print(posts)
+        print("oildb")
+        return render_template("oildatabase.html" ,posts=posts )
+
+
+@app.route('/add_oildata')
+def add_oildata():
+    print("add_oil")
+    example = OilData()
+    #example.id = 1
+    example.name= 'auto title'
+    example.category = 'auto category'
+    example.note = 'auto note'
+    example.smell = 'auto smell'
+    example.due = datetime.strptime('2021-09-20', '%Y-%m-%d')
+    print(example)
+
+    db.session.add(example)
+    db.session.commit()
+    return redirect('/oildatabase')
+
+@app.route('/delete_oildata/<int:id>')
+def delete_oildata(id):
+    post = OilData.query.get(id)
+    print(post)
+
+    db.session.delete(post)
+    db.session.commit()
+    return redirect('/oildatabase')
+
 
 # アップロード機能
 @app.route('/upload', methods=['POST'])
@@ -201,14 +226,13 @@ def insert_sql(data):
 
 @app.route('/test')
 def csv_display(): 
-    date_fruit_list = pd.read_csv("./input/testdata.csv").values.tolist()
+    date_fruit_list = pd.read_csv("./testdata.csv").values.tolist()
     #df= pd.DataFrame(date_fruit_list)
     df= pd.DataFrame(date_fruit_list)
 
-    df.to_csv("./input/testdata2.csv")#ファイルがあったら、上書きしてる
+    df.to_csv("./testdata2.csv")#ファイルがあったら、上書きしてる
     print(date_fruit_list)
     return render_template('date_fruits.html', title='食べた果物記録', date_fruit_list=date_fruit_list)
-    #return render_template('date_fruits.html')
 
 
 @app.route("/export")
@@ -225,8 +249,8 @@ def export_action():
 
 #################ライン返信ゲーム##################################
 @app.route('/vote/<int:id2>', methods=['GET', 'POST'])
-def vote(id2):
-    post = ergame.query.get(id2)
+def vote(id):
+    post = ergamethema.query.get(id)
     if request.method == 'GET':
         return render_template('wait.html', post=post)
     else:
@@ -239,7 +263,13 @@ def vote(id2):
         return redirect('/')
 
 @app.route('/erhome', methods=['GET'])
-def ehome():
+def erhome():
+    posts = er_room.query.all()
+    print(posts)
+    return render_template('erhome.html', posts=posts)
+
+@app.route('/er_enter_room', methods=['GET'])
+def er_enter_room():
     posts = er_room.query.all()
     print(posts)
     return render_template('erhome.html', posts=posts)
@@ -273,13 +303,11 @@ def er_thema_create_prosecc():
 def er_create_room():
     return render_template('er_create_room.html')
 
-@app.route('/er_delete_room/<int:id>')
-def er_delete_room(id):
+@app.route('/er_room_enter/<int:id>')
+def er_room_enter(id):
     post = er_room.query.get(id)
-
-    db.session.delete(post)
-    db.session.commit()
-    return redirect('/erhome')
+    print(post)
+    return render_template('er_room_enter.html', post=post)
 
 @app.route('/er_create_room_process', methods=['POST'])
 def er_create_room_prosecc():
@@ -297,7 +325,6 @@ def er_create_room_prosecc():
     db.session.commit()
     return redirect('/erhome')
 
-
 @app.route('/er_delete/<int:id>')
 def er_delete(id):
     post = ergamethema.query.get(id)
@@ -314,6 +341,22 @@ def er_delete(id):
 #        return render_template('er_create_room.html', ergames=ergames)
 #    else:
 #        return redirect('/erhome')
+
+@app.route('/er_room_enter/<int:id>', methods=['GET'])
+def er_thema_get(id):
+	return render_template('er_room_enter.html', \
+		title = 'Form Sample(get)', \
+		message = '何のお肉が好きですか？')
+
+@app.route('/er_room_enter/<int:id>', methods=['POST'])
+def er_thema_post(id):
+    post = er_room.query.get(id)
+    print(post)
+    name = request.form.get('sel')
+	
+    return render_template('er_room_enter.html', \
+		title = 'Form Sample(post)', \
+		message = '{}の肉がお好きなんですね！'.format(name), post=post)
 
 if __name__ == "__main__":
     app.run(debug=True)#debug環境

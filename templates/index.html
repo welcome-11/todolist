@@ -2,21 +2,17 @@
 
 {% block body %}
 <div class="container">
-    <a class="btn btn-info btn-lg m-5" href="/create" role="button">CREATE NEW TASK</a>
-    <a class="btn btn-info btn-lg m-5" href="/ercreate" role="button">CREATE er</a>
+    <a class="btn btn-info btn-lg m-5" href="/create" role="button">ADD NEW AROMA</a>
     <a class="btn btn-info btn-lg m-5" href="/upload" role="button">READ CSV FILE</a>
-    <a class="btn btn-info btn-lg m-5" href="/add" role="button">Auto Add</a>
     <a class="btn btn-info btn-lg m-5" href="/test" role="button">WRITE TO CSV FILE</a>
-    <a class="btn btn-info btn-lg m-5" href="/votelist" role="button">Vote</a>
-    <a class="btn btn-info btn-lg m-5" href="/erhome" role="button">LINE返信ゲーム</a>
-    <a class="btn btn-secondary btn-sm" href="/detail_test/{{1}}" role="button">Detail</a>
-
+    <a class="btn btn-info btn-lg m-5" href="/oildatabase" role="button">OIL DATABASE</a>
+    
     {% for post in posts %}
     <div class="card w-50 mb-3" style="margin: auto;">
         <div class="card-body">
             {% if post.due.date() < today %}
             <div class="alert alert-warning" role="alert">
-                期限切れです！
+                使用期限切れです！
             </div>
             {% endif %}
             <h2 class="card-title">{{ post.id }}</h2>
